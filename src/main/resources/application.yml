@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:3000}
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/showpass}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+app:
+  jwt-secret: ${JWT_SECRET:dev-only-change-this-secret-to-a-random-string-32-chars}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
