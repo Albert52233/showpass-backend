@@ -3,6 +3,7 @@
 A **fresh implementation / MVP**, not a byte-for-byte recreation of the earlier screenshot project.
 
 ## Included
+- React / TypeScript frontend with event discovery, ticket wallet, and organizer studio
 - Spring Boot 3 / Java 21 / Maven
 - MongoDB persistence for users, venues, events, and orders
 - JWT register/login (BCrypt passwords, 2-hour HS256 access tokens)
@@ -19,6 +20,18 @@ A **fresh implementation / MVP**, not a byte-for-byte recreation of the earlier 
 3. Set a random secret: `export JWT_SECRET="$(openssl rand -hex 32)"`
 4. `mvn spring-boot:run`
 5. Check `http://localhost:3000/actuator/health`.
+
+## Frontend
+
+After starting the backend, use Node.js 22.12+ and run:
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Vite runs on port 5173 and forwards API calls to the backend on port 3000. Register an account, add a venue in Organizer studio, create an event, publish it, and open sales to make it bookable. See [frontend/README.md](frontend/README.md) for build, deployment, and desktop/mobile browser tests.
 
 ## Authentication
 Register with `POST /api/auth/register` and JSON `{ "email":"test@example.com", "password":"password123" }`.
