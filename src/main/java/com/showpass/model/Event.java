@@ -18,16 +18,31 @@ import org.springframework.data.mongodb.core.mapping.Document;
  public Event() {}
  public void validateCreate(Instant now) {
   if (title == null || title.isBlank()) throw new IllegalArgumentException("Title is required");
-  if (startDate == null || !startDate.isAfter(now)) throw new IllegalArgumentException("Start date must be in the future");
-  validateDates();
+  validateFutureDates(startDate,endDate,now);
   if (capacity <= 0) throw new IllegalArgumentException("Capacity must be positive");
   if (priceCents < 0) throw new IllegalArgumentException("Price cannot be negative");
  }
  public void validateDates() {
-  if (startDate == null || endDate == null || !endDate.isAfter(startDate))
+  validateDates(startDate,endDate);
+ }
+ public static void validateDates(Instant start,Instant end) {
+  if (start == null || end == null || !end.isAfter(start))
    throw new IllegalArgumentException("End date must be after start date");
+ }
+ public static void validateFutureDates(Instant start,Instant end,Instant now) {
+  validateDates(start,end);
+  if (!start.isAfter(now)) throw new IllegalArgumentException("Start date must be in the future");
  }
  public void validateStatusTransition(EventStatus next) {
   if (status == null || !status.canMoveTo(next)) throw new IllegalArgumentException("Invalid event status transition");
+ }
+ public void validateStatusTransition(EventStatus next,Instant now) {
+  validateStatusTransition(next);
+  if (next == EventStatus.PUBLISHED || next == EventStatus.ON_SALE)
+   validateFutureDates(startDate,endDate,now);
+  if (next == EventStatus.COMPLETED) {
+   validateDates();
+   if (now.isBefore(endDate)) throw new IllegalArgumentException("Event cannot complete before its end date");
+  }
  }
 }

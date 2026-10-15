@@ -40,6 +40,17 @@ Use the returned token as `Authorization: Bearer <token>` for writes.
 Event status: `DRAFT -> PUBLISHED -> ON_SALE -> (SOLD_OUT | COMPLETED | CANCELLED)`; `SOLD_OUT` may return to `ON_SALE` or go to `COMPLETED` / `CANCELLED`.
 Dates in JSON are ISO 8601 UTC strings (example `2027-01-01T19:00:00Z`).
 
+### Event lifecycle validation
+
+- Only the organizer can change an event's status or dates (otherwise `403`).
+- Only the transitions listed above are allowed; skipping stages, repeating a status, and leaving `COMPLETED` or `CANCELLED` return `400`.
+- Creation, date edits, publishing, and opening/reopening sales require a start strictly in the future and an end strictly after the start (`400`). Invalid date edits do not change the stored event.
+- Opening/reopening sales requires positive inventory; marking `SOLD_OUT` requires zero inventory (`409`). Status changes are explicit; inventory updates do not automatically change the event status.
+- `COMPLETED` is allowed only at or after the event's end (`400` before then). Final events cannot change dates (`409`).
+- Orders require `ON_SALE`, enough inventory, and a start strictly after the current time. These conditions are checked in the same atomic MongoDB inventory update; rejection returns `409` without creating an order.
+
+Run `mvn -B verify` to build and test the transition matrix, time boundaries, organizer permissions, inventory guards, and rejected updates. Time-sensitive services use an injectable UTC clock so tests do not rely on sleeps.
+
 ## Important MVP limitations
 **Not production ready.** Mock payment does not charge a card. Orders do not expire. Reservation and payment are not a distributed transaction; order-save failure compensation is best effort. Inventory is decremented atomically but order state transitions are not atomic, so concurrent duplicate payment/cancellation requests require idempotency/compare-and-set hardening. `GET /api/orders` uses in-memory filtering, suitable only for a demo. Mongo indexes, rate limiting, admin roles, real payment gateway, refunds, redis holds, promo codes, transfers, seat maps, observability, JWT rotation and full integration/security tests are future work.
 
